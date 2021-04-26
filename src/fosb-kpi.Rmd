@@ -130,3 +130,74 @@ kpi_orcid
 ```
 
 
+# KPI1: DMP
+
+**Noemer**: Het aantal FWO, BOF/IOF en VLAIO projecten gestart tussen 01-11-2019 en 31-10-2020, met een (EV)INBO medewerker als promotor/coördinator 
+
+**Teller**: Aandeel in bovenstaande populatie met een DMP.
+
+Op het INBO startte er in 2020 één FWO project. Hiervoor werd een DMP opgeleverd. 
+KPI DMP 2020: 100%
+
+
+# KPI2: FAIR data
+
+Voor deze KPI wordt er in 2020 nog niet gerapporteerd
+
+# KPI3: Open Access
+
+**Noemer**: Aantal A1 en A2 publicaties gepubliceerd in 2020, met één of meerdere (EV)INBO medewerkers als auteur.
+
+**Teller**: Aandeel in bovenstaande populatie beschikbaar als Open Access (green, gold, hybrid) of onder embargo per publicatiejaar
+
+Via PURE werd een lijst opgevraagd met alle INBO A1 en A2 publicaties van 2020. Overbodige en GDPR-gerelateerde kolommen werden verwijderd. Waar een DOI ontbrak werd deze manueel opgevraagd en toegevoegd. Deze bewerkte dataset is [hier]() te vinden. Uit deze lijst werden alle DOI's geëxtraheerd en ingegeven in de [Unpaywall Simple Query Tool](https://unpaywall.org/products/simple-query-tool). Deze simple query tool genereert een lijst met de Open Access status van elke DOI. We lezen deze lijst hier in en berekenen op basis van deze gegevens de waarde voor de KPI.
+
+```{r}
+unpaywall_doi <- read_excel(path = here::here("data", "INBO_artikels_OA_2020.xlsx"),
+                            sheet = "unpaywall_resultaten")
+```
+
+Selecteer artikels waarvoor `is_oa` = `FALSE`
+
+```{r}
+unpaywall_doi %>% filter(is_oa == "FALSE") 
+```
+
+Eén van deze artikels is wel degelijk beschikbaar als OA: 	https://doi.org/10.5281/zenodo.4268553
+Deze versie werd verwijderd op Zenodo maar is hier te vinden:
+https://purews.inbo.be/ws/portalfiles/portal/28262744/10.5281_zenodo.4268553_Sparrow_et_al_2020.pdf
+
+Voor de resultaten via Unpaywall gelden dus volgende waarden:
+
+- Totaal aantal artikels met DOI: 
+
+```{r}
+DOI <- nrow(unpaywall_doi)
+DOI
+```
+
+- Totaal aantal artikels met DOI OA:
+
+```{r}
+OA <- unpaywall_doi %>% 
+  filter(is_oa == "TRUE") %>% 
+  nrow() + 1 
+OA
+```
+
+- KPI Open Access:
+
+```{r}
+OA/DOI*100
+```
+
+# KPI4: Open Data
+
+Voor deze KPI wordt er in 2020 nog niet gerapporteerd
+
+
+
+
+
+
+
