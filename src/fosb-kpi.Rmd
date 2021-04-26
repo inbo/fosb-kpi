@@ -1,0 +1,203 @@
+---
+title: "FOSB KPI's"
+subtitle: "Berekeningen van de  FOSB Key Performance Indicators"
+author:
+- Lien Reyserhove
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    number_sections: true
+    toc: true
+    toc_depth: 3
+    toc_float: true
+---
+
+Voor de Flemish Open Science Board (FOSB) moeten jaarlijks 5 Key Performance Indicators (KPIs) berekend worden die de toestand van Open Science op het INBO beschrijven:
+
+- KPI0: ORCID
+- KPI1: Datamangementplannen (DMP)
+- KPI2: FAIR data
+- KPI3: Open Access
+- KPI4: Open Data
+
+Meer informatie hierover is te vinden in de nota [KPIs voor Open Science in Vlaanderen](https://www.ewi-vlaanderen.be/sites/default/files/bestanden/5fc5f512b328e9000c0007f3.pdf)
+
+Dit document beschrijft de gebruikte werkwijze om de KPI's te berekenen.
+
+# Algemene settings
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Inladen libraries
+
+```{r}
+library(tidyverse)      # To do data science
+library(magrittr)       # To use %<>% pipes
+library(here)           # To find files
+library(janitor)        # To clean input data
+library(readxl)
+```
+
+# KPI0: ORCID
+
+**Noemer**: Het aantal onderzoekers aan het (EV)INBO, actief op 1/10/2020. Het INBO beschouwt alle medewerkers die in aanmerking komen voor recuperatie van de bedrijfsvoorheffing als onderzoekers. Of een onderzoeker al dan niet gefinancierd werd met Vlaamse publieke middelen werd hier niet in rekening genomen. 
+
+**Teller**: Aandeel in bovenstaande populatie met ORCID in PURE
+
+Voor deze berekeningen hebben we 2 bestanden nodig:
+1: Lijst met alle (EV)INBO personeelsleden die in aanmerking komen voor recuperatie van de bedrijfsvoorheffing (`recup_bvh`)
+2: Lijst met alle (EV)INBO personeelsleden die een ORCID hebben aangemaakt (`orcid`).
+
+Importeer `recup_bvh`
+
+```{r}
+recup_bvh <- read_excel(path = here::here("data", "personeelsleden_bedrijfsvermindering_20200110.xlsx"))
+```
+
+
+Teller = aantal rijen
+
+```{r}
+nrow(recup_bvh)
+```
+
+Importeer `orcid`
+
+```{r}
+orcid <- read_excel(path = here::here("data", "personen_met_orcid_20202304.xlsx"))
+```
+
+VOeg ORCID informatie toe aan `recup_bvh`:
+
+```{r}
+bv_orcid <-
+  recup_bvh %>% left_join(orcid, by = "voornaam_naam") %>% 
+    select(naam, voornaam, orcid) %>% 
+    arrange(naam)
+```
+
+INBO onderzoekers (01-10-2020) met ORCID ID's:
+
+```{r}
+bv_met_orcid <- bv_met_orcid %>% filter(!is.na(orcid))
+```
+
+INBO onderzoekers (01-10-2020) zonder ORCID:
+
+```{r}
+bv_zonder_orcid <- bv_orcid %>% filter(is.na(orcid))
+```
+
+
+Opgelet: de lijst met personen aan het (EV)INBO werd gegenereerd op 23 april 2021. De informatie kan niet opgevraagd woorden voor een specifiek punt terug in de tijd. Personen die nu niet meer werken voor het INBO staan niet in `orcid` en moeten manueel opgevraagd worden:
+
+Selecteer personen tewerkzaam op 01-10-2020 maar niet meer op 23-04-2021:
+
+```{r}
+recup_bvh %>% anti_join(orcid, by = "voornaam_naam")
+```
+
+
+ORCID informatie werd opgevraagd via de PURE (niet via ORCID website zelf, niet de focus van deze KPI)
+
+Naam | ORCID
+---  | ---
+Desire Paelinckx | 0000-0002-2835-4455
+Wouter Fannes |  0000-0003-0899-5869
+Ivy Jansen	|
+Zoë De Corte | Lynn
+Timo Van der Veken | NA 
+Margot Verhulst	| NA
+Oberon Geunens	| NA
+Frieda Van Roy |	NA	
+Lynn Pallemaerts	| 
+Liesa Lammens | NA
+Maxime Eeraerts |	0000-0003-2739-9704	
+Bastiaan De Ketelaere	| NA	
+Charlotte Steendam |
+Tine Bommarez	| NA
+
+**Dit levert drie extra ORCIDS op**
+
+Berekening KPI ORCID:
+
+```{r}
+kpi_orcid <- (nrow(bv_met_orcid) + 3)/nrow(recup_bvh) *100
+kpi_orcid
+```
+
+
+# KPI1: DMP
+
+**Noemer**: Het aantal FWO, BOF/IOF en VLAIO projecten gestart tussen 01-11-2019 en 31-10-2020, met een (EV)INBO medewerker als promotor/coördinator 
+
+**Teller**: Aandeel in bovenstaande populatie met een DMP.
+
+Op het INBO startte er in 2020 één FWO project. Hiervoor werd een DMP opgeleverd. 
+KPI DMP 2020: 100%
+
+
+# KPI2: FAIR data
+
+Voor deze KPI wordt er in 2020 nog niet gerapporteerd
+
+# KPI3: Open Access
+
+**Noemer**: Aantal A1 en A2 publicaties gepubliceerd in 2020, met één of meerdere (EV)INBO medewerkers als auteur.
+
+**Teller**: Aandeel in bovenstaande populatie beschikbaar als Open Access (green, gold, hybrid) of onder embargo per publicatiejaar
+
+Via PURE werd een lijst opgevraagd met alle INBO A1 en A2 publicaties van 2020. Overbodige en GDPR-gerelateerde kolommen werden verwijderd. Waar een DOI ontbrak werd deze manueel opgevraagd en toegevoegd. Deze bewerkte dataset is [hier]() te vinden. Uit deze lijst werden alle DOI's geëxtraheerd en ingegeven in de [Unpaywall Simple Query Tool](https://unpaywall.org/products/simple-query-tool). Deze simple query tool genereert een lijst met de Open Access status van elke DOI. We lezen deze lijst hier in en berekenen op basis van deze gegevens de waarde voor de KPI.
+
+```{r}
+unpaywall_doi <- read_excel(path = here::here("data", "INBO_artikels_OA_2020.xlsx"),
+                            sheet = "unpaywall_resultaten")
+```
+
+Selecteer artikels waarvoor `is_oa` = `FALSE`
+
+```{r}
+unpaywall_doi %>% filter(is_oa == "FALSE") 
+```
+
+Eén van deze artikels is wel degelijk beschikbaar als OA: 	https://doi.org/10.5281/zenodo.4268553
+Deze versie werd verwijderd op Zenodo maar is hier te vinden:
+https://purews.inbo.be/ws/portalfiles/portal/28262744/10.5281_zenodo.4268553_Sparrow_et_al_2020.pdf
+
+Voor de resultaten via Unpaywall gelden dus volgende waarden:
+
+- Totaal aantal artikels met DOI: 
+
+```{r}
+DOI <- nrow(unpaywall_doi)
+DOI
+```
+
+- Totaal aantal artikels met DOI OA:
+
+```{r}
+OA <- unpaywall_doi %>% 
+  filter(is_oa == "TRUE") %>% 
+  nrow() + 1 
+OA
+```
+
+- KPI Open Access:
+
+```{r}
+OA/DOI*100
+```
+
+# KPI4: Open Data
+
+Voor deze KPI wordt er in 2020 nog niet gerapporteerd
+
+
+
+
+
+
+
