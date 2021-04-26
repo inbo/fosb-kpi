@@ -42,3 +42,8 @@ src/*.pdf
 
 # Mac OS X
 .DS_Store
+
+# Data met persoonsgegevens
+data/personeelsleden_bedrijfsvermindering_20200110.xlsx
+data/personen_met_orcid_20202304.xlsx
+
