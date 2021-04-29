@@ -82,7 +82,7 @@ bv_orcid <-
 INBO onderzoekers (01-10-2020) met ORCID ID's:
 
 ```{r}
-bv_met_orcid <- bv_met_orcid %>% filter(!is.na(orcid))
+bv_met_orcid <- bv_orcid %>% filter(!is.na(orcid))
 ```
 
 INBO onderzoekers (01-10-2020) zonder ORCID:
@@ -150,17 +150,17 @@ Voor deze KPI wordt er in 2020 nog niet gerapporteerd
 
 **Teller**: Aandeel in bovenstaande populatie beschikbaar als Open Access (green, gold, hybrid) of onder embargo per publicatiejaar
 
-Via PURE werd een lijst opgevraagd met alle INBO A1 en A2 publicaties van 2020. Overbodige en GDPR-gerelateerde kolommen werden verwijderd. Waar een DOI ontbrak werd deze manueel opgevraagd en toegevoegd. Deze bewerkte dataset is [hier]() te vinden. Uit deze lijst werden alle DOI's geëxtraheerd en ingegeven in de [Unpaywall Simple Query Tool](https://unpaywall.org/products/simple-query-tool). Deze simple query tool genereert een lijst met de Open Access status van elke DOI. We lezen deze lijst hier in en berekenen op basis van deze gegevens de waarde voor de KPI.
+Via PURE werd een lijst opgevraagd met alle INBO A1 en A2 publicaties van 2020. Overbodige en GDPR-gerelateerde kolommen werden verwijderd. Voor A1 publicaties was bijna steeds een DOI beschikbaar. Waar een DOI ontbrak werd deze manueel opgevraagd en toegevoegd. Deze bewerkte dataset is [hier]() te vinden. Uit deze lijst met A1 publicaties werden alle DOI's geëxtraheerd en ingegeven in de [Unpaywall Simple Query Tool](https://unpaywall.org/products/simple-query-tool). Deze simple query tool genereert een lijst met de Open Access status van elke DOI. 
 
 ```{r}
-unpaywall_doi <- read_excel(path = here::here("data", "INBO_artikels_OA_2020.xlsx"),
+a1 <- read_excel(path = here::here("data", "INBO_artikels_OA_2020.xlsx"),
                             sheet = "unpaywall_resultaten")
 ```
 
 Selecteer artikels waarvoor `is_oa` = `FALSE`
 
 ```{r}
-unpaywall_doi %>% filter(is_oa == "FALSE") 
+a1 %>% filter(is_oa == "FALSE") 
 ```
 
 Eén van deze artikels is wel degelijk beschikbaar als OA: 	https://doi.org/10.5281/zenodo.4268553
@@ -169,27 +169,48 @@ https://purews.inbo.be/ws/portalfiles/portal/28262744/10.5281_zenodo.4268553_Spa
 
 Voor de resultaten via Unpaywall gelden dus volgende waarden:
 
-- Totaal aantal artikels met DOI: 
-
+- Totaal aantal A1 artikels
 ```{r}
-DOI <- nrow(unpaywall_doi)
-DOI
+a1_total <- nrow(a1)
+a1_total
 ```
 
-- Totaal aantal artikels met DOI OA:
+- Totaal aantal A1 artikels OA:
 
 ```{r}
-OA <- unpaywall_doi %>% 
+a1_OA <- a1 %>% 
   filter(is_oa == "TRUE") %>% 
   nrow() + 1 
-OA
+a1_OA
 ```
-
-- KPI Open Access:
+De A2 publicaties waren zelden gelinkt met een DOI. Voor deze publicaties moest de Open Access status dus worden opgezocht. 
 
 ```{r}
-OA/DOI*100
+a2 <- read_excel(path = here::here("data", "INBO_artikels_OA_2020.xlsx"),
+                            sheet = "onderzoeksoutput_2020_A2")
 ```
+
+Aantal rijen in `a2`:
+
+```{r}
+a2_total <- nrow(a2)
+a2_total
+```
+
+```{r}
+a2_OA <- a2 %>% 
+  filter(OA == "TRUE") %>% 
+  nrow()
+a2_OA
+```
+
+KPI OA:
+
+```{r}
+(a1_OA + a2_OA)/(a1_total + a2_total) * 100
+```
+
+
 
 # KPI4: Open Data
 
